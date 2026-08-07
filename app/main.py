@@ -11,7 +11,7 @@ app = FastAPI(
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the API"}
+    return {"message": "Welcome to the A PI"}
 
 
 @app.get("/health")
