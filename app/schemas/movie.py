@@ -1,0 +1,24 @@
+from pydantic import BaseModel, ConfigDict
+
+
+class MovieResponse(BaseModel):
+    tmdb_id: int
+    title: str
+    overview: str | None = None
+    poster_path: str | None = None
+    release_date: str | None = None
+    vote_average: float | None = None
+
+
+class FavoriteCreate(BaseModel):
+    tmdb_id: int
+    title: str
+    overview: str | None = None
+    poster_path: str | None = None
+    release_date: str | None = None
+
+
+class FavoriteResponse(FavoriteCreate):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
