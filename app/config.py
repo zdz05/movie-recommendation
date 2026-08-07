@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@db:5432/movies"
     tmdb_api_key: str = ""
     tmdb_base_url: str = "https://api.themoviedb.org/3"
+    movielens_dir: str = "../ml-25m"
 
 
 settings = Settings()
