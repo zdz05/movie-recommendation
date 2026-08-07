@@ -7,11 +7,13 @@ from app.database import Base, engine
 from app.routers.favorites import router as favorites_router
 from app.routers.movies import router as movies_router
 from app.routers.recommendations import router as recommendations_router
+from app.services import recommendation_service
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(bind=engine)
+    recommendation_service.load_model()
     yield
 
 

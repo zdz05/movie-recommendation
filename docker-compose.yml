@@ -27,6 +27,9 @@ services:
       APP_NAME: Movie Recommendation API
       DATABASE_URL: postgresql://postgres:postgres@db:5432/movies
       TMDB_API_KEY: ${TMDB_API_KEY}
+      MOVIELENS_DIR: /data/movielens
+    volumes:
+      - ../ml-25m:/data/movielens:ro
     depends_on:
       db:
         condition: service_healthy

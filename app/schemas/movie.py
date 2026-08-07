@@ -22,3 +22,11 @@ class FavoriteResponse(FavoriteCreate):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+
+
+class RecommendationResponse(BaseModel):
+    movie_id: int
+    tmdb_id: int | None = None
+    title: str
+    genres: str | None = None
+    score: float
