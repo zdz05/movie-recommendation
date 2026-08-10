@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: movie-rec-api
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: TMDB_API_KEY
+        sync: false
+      - key: MOVIELENS_DIR
+        value: /app/data/movielens
+      - key: APP_NAME
+        value: Movie Recommendation API
