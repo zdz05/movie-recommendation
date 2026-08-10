@@ -1,10 +1,9 @@
+.venv
 __pycache__
 *.py[cod]
-.venv
-venv
 .env
 .git
-.gitignore
 .idea
-.vscode
-*.md
+data/movielens/*.csv
+data/movielens/*.zip
+movies.db

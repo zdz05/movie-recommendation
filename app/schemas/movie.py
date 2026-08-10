@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
 class MovieResponse(BaseModel):
@@ -16,12 +16,6 @@ class FavoriteCreate(BaseModel):
     overview: str | None = None
     poster_path: str | None = None
     release_date: str | None = None
-
-
-class FavoriteResponse(FavoriteCreate):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
 
 
 class RecommendationResponse(BaseModel):

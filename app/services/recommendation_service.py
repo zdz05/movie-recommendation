@@ -1,6 +1,8 @@
 import re
+import zipfile
 from pathlib import Path
 
+import httpx
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -8,6 +10,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from app.config import settings
 from app.schemas.movie import RecommendationResponse
+
+ML25M_URL = "https://files.grouplens.org/datasets/movielens/ml-25m.zip"
+REQUIRED_FILES = ("movies.csv", "ratings.csv", "links.csv")
 
 movies: pd.DataFrame | None = None
 ratings: pd.DataFrame | None = None
@@ -20,14 +25,40 @@ def clean_title(title: str) -> str:
     return re.sub("[^a-zA-Z0-9 ]", "", title)
 
 
+def ensure_movielens_data(data_dir: Path) -> None:
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    if all((data_dir / name).exists() for name in REQUIRED_FILES):
+        return
+
+    zip_path = data_dir / "ml-25m.zip"
+    if not zip_path.exists():
+        with httpx.stream("GET", ML25M_URL, follow_redirects=True, timeout=300.0) as response:
+            response.raise_for_status()
+            with zip_path.open("wb") as f:
+                for chunk in response.iter_bytes():
+                    f.write(chunk)
+
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        for name in REQUIRED_FILES:
+            target = data_dir / name
+            if target.exists():
+                continue
+            with zf.open(f"ml-25m/{name}") as src, target.open("wb") as dst:
+                dst.write(src.read())
+
+
 def load_model() -> None:
     global movies, ratings, links, vectorizer, tfidf
 
     data_dir = Path(settings.movielens_dir)
+    ensure_movielens_data(data_dir)
+
     movies = pd.read_csv(data_dir / "movies.csv")
     ratings = pd.read_csv(data_dir / "ratings.csv")
     links = pd.read_csv(data_dir / "links.csv")
 
+    movies = movies.copy()
     movies["clean_title"] = movies["title"].apply(clean_title)
 
     vectorizer = TfidfVectorizer(ngram_range=(1, 2))

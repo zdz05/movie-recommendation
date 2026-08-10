@@ -14,3 +14,5 @@ dist/
 build/
 .idea/
 .vscode/
+data/movielens/*.csv
+data/movielens/*.zip
