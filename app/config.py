@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     tmdb_api_key: str = ""
     tmdb_base_url: str = "https://api.themoviedb.org/3"
     movielens_dir: str = "data/movielens"
+    use_small_movielens: bool = False
 
 
 settings = Settings()

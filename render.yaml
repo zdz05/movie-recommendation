@@ -9,5 +9,7 @@ services:
         sync: false
       - key: MOVIELENS_DIR
         value: /app/data/movielens
+      - key: USE_SMALL_MOVIELENS
+        value: "true"
       - key: APP_NAME
         value: Movie Recommendation API

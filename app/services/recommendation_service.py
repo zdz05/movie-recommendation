@@ -12,6 +12,7 @@ from app.config import settings
 from app.schemas.movie import RecommendationResponse
 
 ML25M_URL = "https://files.grouplens.org/datasets/movielens/ml-25m.zip"
+ML_SMALL_URL = "https://files.grouplens.org/datasets/movielens/ml-latest-small.zip"
 REQUIRED_FILES = ("movies.csv", "ratings.csv", "links.csv")
 
 movies: pd.DataFrame | None = None
@@ -19,6 +20,12 @@ ratings: pd.DataFrame | None = None
 links: pd.DataFrame | None = None
 vectorizer: TfidfVectorizer | None = None
 tfidf = None
+
+
+def _dataset_config() -> tuple[str, str, str]:
+    if settings.use_small_movielens:
+        return ML_SMALL_URL, "ml-latest-small.zip", "ml-latest-small"
+    return ML25M_URL, "ml-25m.zip", "ml-25m"
 
 
 def clean_title(title: str) -> str:
@@ -31,9 +38,11 @@ def ensure_movielens_data(data_dir: Path) -> None:
     if all((data_dir / name).exists() for name in REQUIRED_FILES):
         return
 
-    zip_path = data_dir / "ml-25m.zip"
+    dataset_url, zip_name, folder_name = _dataset_config()
+    zip_path = data_dir / zip_name
+
     if not zip_path.exists():
-        with httpx.stream("GET", ML25M_URL, follow_redirects=True, timeout=300.0) as response:
+        with httpx.stream("GET", dataset_url, follow_redirects=True, timeout=300.0) as response:
             response.raise_for_status()
             with zip_path.open("wb") as f:
                 for chunk in response.iter_bytes():
@@ -44,7 +53,7 @@ def ensure_movielens_data(data_dir: Path) -> None:
             target = data_dir / name
             if target.exists():
                 continue
-            with zf.open(f"ml-25m/{name}") as src, target.open("wb") as dst:
+            with zf.open(f"{folder_name}/{name}") as src, target.open("wb") as dst:
                 dst.write(src.read())
 
 
@@ -55,7 +64,11 @@ def load_model() -> None:
     ensure_movielens_data(data_dir)
 
     movies = pd.read_csv(data_dir / "movies.csv")
-    ratings = pd.read_csv(data_dir / "ratings.csv")
+    ratings = pd.read_csv(
+        data_dir / "ratings.csv",
+        usecols=["userId", "movieId", "rating"],
+        dtype={"userId": "int32", "movieId": "int32", "rating": "float32"},
+    )
     links = pd.read_csv(data_dir / "links.csv")
 
     movies = movies.copy()
@@ -77,6 +90,10 @@ def find_similar_movies(movie_id: int) -> pd.DataFrame:
     similar_users = ratings[
         (ratings["movieId"] == movie_id) & (ratings["rating"] > 4)
     ]["userId"].unique()
+
+    if len(similar_users) == 0:
+        return pd.DataFrame(columns=["score", "movieId", "title", "genres"])
+
     similar_user_recs = ratings[
         (ratings["userId"].isin(similar_users)) & (ratings["rating"] > 4)
     ]["movieId"]
